@@ -91,6 +91,8 @@ class Client extends EventEmitter {
       }
     )
 
+    resp.body = await resp.json()
+
     if (resp.body.error && resp.body.error.startsWith("405")) {
       new OAuthError({
         message: "Method Not Allowed",
