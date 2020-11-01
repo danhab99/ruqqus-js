@@ -11,7 +11,7 @@ class OAuthWarning {
    */
 
   constructor(options) {
-    this.message = `${chalk.yellow("WARN!")} ${options.message} - ${chalk.yellow(options.warning || "")}`
+    this.message = `WARN! ${options.message} - ${options.warning || ""}`
 
     this.throw();
   }
@@ -47,7 +47,7 @@ class OAuthError extends Error {
       503: "UNAVAILABLE"
     }
 
-    this.message = `${chalk.red(options.fatal ? "FATAL ERR!" : "ERR!")} ${options.message} - ${chalk.yellow(`${options.code} ${codeStatuses[options.code] || ""}`)}`;
+    this.message = `${options.fatal ? "FATAL ERR!" : "ERR!"} ${options.message} - ${options.code}${codeStatuses[options.code] || ""}`;
 
     this.error = options.message;
     this.code = options.code;
@@ -62,7 +62,7 @@ class OAuthError extends Error {
     stack = stack.map((x, i) => {
       if (i == 0) return x;
       if (i == 1 && x.trim().startsWith("at Object")) return x;
-      return chalk.gray(x);
+      return x;
     });
 
     console.log(this.message);

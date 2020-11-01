@@ -133,7 +133,7 @@ class Client extends EventEmitter {
         Client.keys.refresh.access_token = resp.access_token;
         let refreshIn = (resp.expires_at - 5) * 1000 - Date.now()
         
-        console.log(`${chalk.greenBright("SUCCESS!")} Token Acquired!\nNext refresh in: ${chalk.yellow(`${Math.floor(refreshIn / 1000)} seconds`)} ${chalk.blueBright(`(${new Date((resp.expires_at - 10) * 1000).toLocaleTimeString("en-US")})`)}`);
+        // console.log(`${chalk.greenBright("SUCCESS!")} Token Acquired!\nNext refresh in: ${chalk.yellow(`${Math.floor(refreshIn / 1000)} seconds`)} ${chalk.blueBright(`(${new Date((resp.expires_at - 10) * 1000).toLocaleTimeString("en-US")})`)}`);
         setTimeout(() => { this._refreshToken() }, refreshIn);
 
         if (!this.online) {

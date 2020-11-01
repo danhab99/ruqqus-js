@@ -54,33 +54,33 @@ function getAuthURL(options) {
  * Generates a URL for obtaining an authorization code based on console input. Exits the process upon completion.
  */
 
-function getAuthURLInput() {
-  const chalk = require("chalk");
-  const readline = require("readline");
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
+// function getAuthURLInput() {
+//   const chalk = require("chalk");
+//   const readline = require("readline");
+//   const rl = readline.createInterface({
+//     input: process.stdin,
+//     output: process.stdout
+//   });
 
-  console.log("\r");
-  rl.question(`${chalk.yellow("Application ID")}: `, id => 
-    rl.question(`${chalk.yellow("Redirect URI")}: `, redirect => 
-    rl.question(`${chalk.yellow("State Token")}: `, state => 
-    rl.question(`${chalk.yellow("Scope List")}: `, scopes => 
-    rl.question(`${chalk.yellow("Permanent (y/n)")}: `, permanent => {
-      console.log("\r");
+//   console.log("\r");
+//   rl.question(`${chalk.yellow("Application ID")}: `, id => 
+//     rl.question(`${chalk.yellow("Redirect URI")}: `, redirect => 
+//     rl.question(`${chalk.yellow("State Token")}: `, state => 
+//     rl.question(`${chalk.yellow("Scope List")}: `, scopes => 
+//     rl.question(`${chalk.yellow("Permanent (y/n)")}: `, permanent => {
+//       console.log("\r");
 
-      let generatedURL = getAuthURL({
-        id, redirect, state, 
-        scopes: scopes || "all", 
-        permanent: ["y", "yes"].includes(permanent.toLowerCase())
-      });
+//       let generatedURL = getAuthURL({
+//         id, redirect, state, 
+//         scopes: scopes || "all", 
+//         permanent: ["y", "yes"].includes(permanent.toLowerCase())
+//       });
 
-      if (generatedURL) console.log(`${chalk.yellow("Generated URL:")} ${generatedURL}\r`);
+//       if (generatedURL) console.log(`${chalk.yellow("Generated URL:")} ${generatedURL}\r`);
 
-      process.exit();
-    })
-  ))));
-}
+//       process.exit();
+//     })
+//   ))));
+// }
 
-module.exports = { getAuthURL, getAuthURLInput };
+module.exports = { getAuthURL/* , getAuthURLInput */ };
