@@ -1,5 +1,4 @@
 const needle = require("needle");
-const chalk = require("chalk");
 const { EventEmitter } = require("events");
 
 const { OAuthWarning, OAuthError } = require("./error.js");
