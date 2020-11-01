@@ -1,4 +1,5 @@
-const AsyncStorage = require('@react-native-async-storage/async-storage');
+// const AsyncStorage = require('@react-native-async-storage/async-storage');
+const { AsyncStorage } = require('react-native')
 
 const { OAuthError } = require("../classes/error.js");
 // let path = `${__dirname}/config.json`;
