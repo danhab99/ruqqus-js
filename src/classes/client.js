@@ -222,121 +222,129 @@ class Client extends EventEmitter {
     return Math.floor((Date.now() - this.startTime) / 1000);
   }
   
-  guilds = {
-    /**
-     * Fetches a guild with the specified name.
-     * 
-     * @param {String} name The guild name.
-     * @returns {Guild} The guild object.
-     */
-
-    async fetch(name) {
-      if (!Client.scopes.read) {
-        new OAuthError({
-          message: 'Missing "Read" Scope',
-          code: 401
-        }); return;
+  get guilds() {
+    return {
+      /**
+       * Fetches a guild with the specified name.
+       * 
+       * @param {String} name The guild name.
+       * @returns {Guild} The guild object.
+       */
+    
+      fetch: async (name) => {
+        if (!Client.scopes.read) {
+          new OAuthError({
+            message: 'Missing "Read" Scope',
+            code: 401
+          }); return;
+        }
+    
+        return new (require("./guild.js"))(await Client.APIRequest({ type: "GET", path: `guild/${name}` }));
+      },
+    
+      /**
+       * Fetches whether or not a guild with the specified name is available.
+       * 
+       * @param {String} name The guild name.
+       * @returns {Boolean}
+       */
+    
+      isAvailable: async (name) => {
+        if (!name) return undefined;
+        let resp = await Client.APIRequest({ type: "GET", path: `board_available/${name}` });
+    
+        return resp.available;
       }
-
-      return new (require("./guild.js"))(await Client.APIRequest({ type: "GET", path: `guild/${name}` }));
-    },
-
-    /**
-     * Fetches whether or not a guild with the specified name is available.
-     * 
-     * @param {String} name The guild name.
-     * @returns {Boolean}
-     */
-
-    async isAvailable(name) {
-      if (!name) return undefined;
-      let resp = await Client.APIRequest({ type: "GET", path: `board_available/${name}` });
-
-      return resp.available;
     }
   }
 
-  posts = {
-    /**
-     * Fetches a post with the specified ID.
-     * 
-     * @param {String} id The post ID.
-     * @returns {Post} The post object.
-     */
+  get posts() { 
+    return {
+      /**
+       * Fetches a post with the specified ID.
+       * 
+       * @param {String} id The post ID.
+       * @returns {Post} The post object.
+       */
 
-    async fetch(id) {
-      if (!Client.scopes.read) {
-        new OAuthError({
-          message: 'Missing "Read" Scope',
-          code: 401
-        }); return;
-      }
+      fetch: async (id) => {
+        if (!Client.scopes.read) {
+          new OAuthError({
+            message: 'Missing "Read" Scope',
+            code: 401
+          }); return;
+        }
 
-      let post = new (require("./post.js"))(await Client.APIRequest({ type: "GET", path: `post/${id}` }));
+        let post = new (require("./post.js"))(await Client.APIRequest({ type: "GET", path: `post/${id}` }));
 
-      this.cache.push(post);
-      return post;
-    },
+        this.cache.push(post);
+        return post;
+      },
 
-    cache: new SubmissionCache()
+      cache: new SubmissionCache()
+    }
   }
 
-  comments = {
-    /**
-     * Fetches a comment with the specified ID.
-     * 
-     * @param {String} id The comment ID.
-     * @returns {Comment} The comment object.
-     */
+  get comments() { 
+    return {
+      /**
+       * Fetches a comment with the specified ID.
+       * 
+       * @param {String} id The comment ID.
+       * @returns {Comment} The comment object.
+       */
 
-    async fetch(id) {
-      if (!Client.scopes.read) {
-        new OAuthError({
-          message: 'Missing "Read" Scope',
-          code: 401
-        }); return;
+      fetch: async (id) => {
+        if (!Client.scopes.read) {
+          new OAuthError({
+            message: 'Missing "Read" Scope',
+            code: 401
+          }); return;
+        }
+
+        let comment = new (require("./comment.js"))(await Client.APIRequest({ type: "GET", path: `comment/${id}` }));
+
+        this.cache.push(comment);
+        return comment;
+      },
+
+      cache: new SubmissionCache()
+    }
+}
+
+  get users(){ 
+    return {
+      /**
+       * Fetches a user with the specified username.
+       * 
+       * @param {String} username The user's name.
+       * @returns {User} The user object.
+       */
+
+      fetch: async (username) => {
+        if (!Client.scopes.read) {
+          new OAuthError({
+            message: 'Missing "Read" Scope',
+            code: 401
+          }); return;
+        }
+
+        return new (require("./user.js"))(await Client.APIRequest({ type: "GET", path: `user/${username}` }));
+      },
+
+      /**
+       * Fetches whether or not a user with the specified username is available.
+       * 
+       * @param {String} username The user's name.
+       * @returns {Boolean}
+       */
+      
+      isAvailable: async (username) => {
+        if (!username) return undefined;
+        let resp = await Client.APIRequest({ type: "GET", path: `is_available/${username}` });
+
+        return Object.values(resp)[0];
       }
-
-      let comment = new (require("./comment.js"))(await Client.APIRequest({ type: "GET", path: `comment/${id}` }));
-
-      this.cache.push(comment);
-      return comment;
-    },
-
-    cache: new SubmissionCache()
-  }
-
-  users = {
-    /**
-     * Fetches a user with the specified username.
-     * 
-     * @param {String} username The user's name.
-     * @returns {User} The user object.
-     */
-
-    async fetch(username) {
-      if (!Client.scopes.read) {
-        new OAuthError({
-          message: 'Missing "Read" Scope',
-          code: 401
-        }); return;
-      }
-
-      return new (require("./user.js"))(await Client.APIRequest({ type: "GET", path: `user/${username}` }));
-    },
-
-    /**
-     * Fetches whether or not a user with the specified username is available.
-     * 
-     * @param {String} username The user's name.
-     * @returns {Boolean}
-     */
-    
-    async isAvailable(username) {
-      if (!username) return undefined;
-      let resp = await Client.APIRequest({ type: "GET", path: `is_available/${username}` });
-
-      return Object.values(resp)[0];
     }
   }
 }
