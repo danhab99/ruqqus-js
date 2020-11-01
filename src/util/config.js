@@ -1,4 +1,3 @@
-// const fs = require("fs");
 const AsyncStorage = require('@react-native-async-storage/async-storage');
 
 const { OAuthError } = require("../classes/error.js");
