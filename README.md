@@ -15,21 +15,25 @@
   </p>
 </div>
 
+# Modified for React Native
+
 ## Table of Contents
 
-- [About](#about)
-- [Setup](#setup)
-  - [Installation](#installation)
-  - [Creating a Ruqqus Application](#creating-a-ruqqus-application)
-  - [Acquiring an Authcode](#acquiring-an-authcode)
-    - [Manual URL Generation](#manual-url-generation)
-    - [Automatic URL Generation](#automatic-url-generation)
-  - [Completing the Setup](#completing-the-setup)
-- [Example](#example)
-- [Links](#links)
-  - [Developer Links](#developer-links)
-- [Contributing](#contributing)
-- [License](#license)
+- [Modified for React Native](#modified-for-react-native)
+  - [Table of Contents](#table-of-contents)
+  - [About](#about)
+  - [Setup](#setup)
+    - [Installation](#installation)
+    - [Creating a Ruqqus Application](#creating-a-ruqqus-application)
+    - [Acquiring an Authcode](#acquiring-an-authcode)
+      - [Manual URL Generation](#manual-url-generation)
+      - [Automatic URL Generation](#automatic-url-generation)
+    - [Completing the Setup](#completing-the-setup)
+  - [Example](#example)
+  - [Links](#links)
+    - [Developer Links](#developer-links)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## About
 

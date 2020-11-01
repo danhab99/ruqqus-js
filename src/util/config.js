@@ -1,10 +1,12 @@
-const fs = require("fs");
+// const fs = require("fs");
+const AsyncStorage = require('@react-native-async-storage/async-storage');
 
 const { OAuthError } = require("../classes/error.js");
-let path = `${__dirname}/config.json`;
+// let path = `${__dirname}/config.json`;
 
 function update(obj) {
-  fs.writeFileSync(path, JSON.stringify(obj, null, 2));
+  // fs.writeFileSync(path, JSON.stringify(obj, null, 2));
+  AsyncStorage.setItem('ruqqusjs', JSON.stringify(obj, null, 2))
 }
 
 /**
@@ -48,7 +50,8 @@ function config(options) {
 
 config.regenerate = function() {
   try {
-    fs.accessSync(path);
+    // fs.accessSync(path);
+    AsyncStorage.getItem('ruqqusjs')
   } catch (e) {
     update({ 
       autosave: null,
