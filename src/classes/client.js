@@ -1,4 +1,3 @@
-const needle = require("needle");
 const { EventEmitter } = require("events");
 
 const { OAuthWarning, OAuthError } = require("./error.js");
@@ -76,14 +75,21 @@ class Client extends EventEmitter {
       }); return;
     }
 
-    let resp = await needle(options.type, options.path.startsWith("https://ruqqus.com/") ? options.path : `https://ruqqus.com/api/v1/${options.path.toLowerCase()}`, options.options || {}, { 
-      user_agent: Client.userAgent, 
-      headers: { 
-        Authorization: `Bearer ${Client.keys.refresh.access_token}`, 
-        "X-User-Type": "Bot",
-        "X-Library": "ruqqus-js",
-        "X-Supports": "auth",
-      } });
+    let resp = await fetch(
+      options.path.startsWith("https://ruqqus.com/")
+      ? options.path
+      : `https://ruqqus.com/api/v1/${options.path.toLowerCase()}`,
+      {
+        method: options.type,
+        headers: {
+          Authorization: `Bearer ${Client.keys.refresh.access_token}`,
+          "X-User-Type": "Bot",
+          "X-Library": "ruqqus-js",
+          "X-Supports": "auth",
+          'User-Agent': Client.userAgent
+        },
+      }
+    )
 
     if (resp.body.error && resp.body.error.startsWith("405")) {
       new OAuthError({
@@ -145,12 +151,6 @@ class Client extends EventEmitter {
               warning: "Client user data will be undefined!"
             });
           }
-
-          let latest = await needle("GET", "https://registry.npmjs.org/ruqqus-js"); latest = Object.keys(latest.body.time); latest = latest[latest.length - 1];
-          if (require("../version.js").version != latest) new OAuthWarning({
-            message: `Outdated Version (${require(`../version.js`).version})`,
-            warning: "Some features may be deprecated!"
-          });
 
           if (!Client.scopes.read) new OAuthWarning({
             message: 'Missing "Read" Scope',
