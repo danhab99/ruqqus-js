@@ -48,6 +48,7 @@ class Client extends EventEmitter {
 
     Client.scopes = {};
     Client.userAgent = options.agent || `ruqqus-js@${options.id}`;
+    Client.domain = options.domain || 'ruqqus.com'
 
     this.startTime = 0;
     this.online = false,
@@ -76,9 +77,9 @@ class Client extends EventEmitter {
     }
 
     let resp = await fetch(
-      options.path.startsWith("https://ruqqus.com/")
+      options.path.startsWith(`https://${options.domain}/`)
       ? options.path
-      : `https://ruqqus.com/api/v1/${options.path.toLowerCase()}`,
+      : `https://${options.domain}/api/v1/${options.path.toLowerCase()}`,
       {
         method: options.type,
         headers: {
@@ -104,7 +105,7 @@ class Client extends EventEmitter {
   }
   
   _refreshToken() {
-    Client.APIRequest({ type: "POST", path: "https://ruqqus.com/oauth/grant", options: Client.keys.refresh.refresh_token ? Client.keys.refresh : Client.keys.code })
+    Client.APIRequest({ type: "POST", path: `https://${this.domain}/oauth/grant`, options: Client.keys.refresh.refresh_token ? Client.keys.refresh : Client.keys.code })
       .then(async (resp) => {
         if (resp.oauth_error) {
           let type;

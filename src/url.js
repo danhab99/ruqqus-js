@@ -47,40 +47,7 @@ function getAuthURL(options) {
 
   if (!options.redirect || options.redirect == " ") options.redirect = "http://localhost";
 
-  return `https://ruqqus.com/oauth/authorize?client_id=${options.id}&redirect_uri=${options.redirect.startsWith("http") ? options.redirect : `${options.redirect}`}&state=${options.state || "ruqqus-js"}&scope=${scopes}${options.permanent ? "&permanent=true" : ""}`;
+  return `https://${options.domain || 'ruqqus.com'}/oauth/authorize?client_id=${options.id}&redirect_uri=${options.redirect.startsWith("http") ? options.redirect : `${options.redirect}`}&state=${options.state || "ruqqus-js"}&scope=${scopes}${options.permanent ? "&permanent=true" : ""}`;
 }
 
-/**
- * Generates a URL for obtaining an authorization code based on console input. Exits the process upon completion.
- */
-
-// function getAuthURLInput() {
-//   const chalk = require("chalk");
-//   const readline = require("readline");
-//   const rl = readline.createInterface({
-//     input: process.stdin,
-//     output: process.stdout
-//   });
-
-//   console.log("\r");
-//   rl.question(`${chalk.yellow("Application ID")}: `, id => 
-//     rl.question(`${chalk.yellow("Redirect URI")}: `, redirect => 
-//     rl.question(`${chalk.yellow("State Token")}: `, state => 
-//     rl.question(`${chalk.yellow("Scope List")}: `, scopes => 
-//     rl.question(`${chalk.yellow("Permanent (y/n)")}: `, permanent => {
-//       console.log("\r");
-
-//       let generatedURL = getAuthURL({
-//         id, redirect, state, 
-//         scopes: scopes || "all", 
-//         permanent: ["y", "yes"].includes(permanent.toLowerCase())
-//       });
-
-//       if (generatedURL) console.log(`${chalk.yellow("Generated URL:")} ${generatedURL}\r`);
-
-//       process.exit();
-//     })
-//   ))));
-// }
-
-module.exports = { getAuthURL/* , getAuthURLInput */ };
+module.exports = { getAuthURL };
