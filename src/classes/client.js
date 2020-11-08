@@ -48,7 +48,8 @@ class Client extends EventEmitter {
 
     Client.scopes = {};
     Client.userAgent = options.agent || `ruqqus-js@${options.id}`;
-    Client.domain = options.domain || 'ruqqus.com'
+    
+    this.domain = options.domain || 'ruqqus.com'
 
     this.startTime = 0;
     this.online = false,
@@ -105,7 +106,14 @@ class Client extends EventEmitter {
   }
   
   _refreshToken() {
-    Client.APIRequest({ type: "POST", path: `https://${this.domain}/oauth/grant`, options: Client.keys.refresh.refresh_token ? Client.keys.refresh : Client.keys.code })
+    Client.APIRequest({
+      type: "POST",
+      path: `https://${this.domain}/oauth/grant`,
+      options: Client.keys.refresh.refresh_token
+        ? Client.keys.refresh
+        : Client.keys.code,
+      domain: this.domain
+    })
       .then(async (resp) => {
         if (resp.oauth_error) {
           let type;
@@ -114,53 +122,65 @@ class Client extends EventEmitter {
             type = "Refresh Token";
           } else if (resp.oauth_error == "Invalid code") {
             type = "Authcode";
-          } else if (resp.oauth_error == "Invalid `client_id` or `client_secret`") {
-            type = "ID or Client Secret"
+          } else if (
+            resp.oauth_error == "Invalid `client_id` or `client_secret`"
+          ) {
+            type = "ID or Client Secret";
           }
 
           return new OAuthError({
             message: `Invalid ${type}`,
             code: 401,
-            fatal: true
+            fatal: true,
           });
         }
 
-        resp.scopes.split(",").forEach(s => {
+        resp.scopes.split(",").forEach((s) => {
           Client.scopes[s] = true;
         });
 
-        if (config.get("autosave") === true && (!config.get("refresh") || config.get("refresh") == " ") && resp.refresh_token) {
+        if (
+          config.get("autosave") === true &&
+          (!config.get("refresh") || config.get("refresh") == " ") &&
+          resp.refresh_token
+        ) {
           config.set("refresh", resp.refresh_token);
         }
 
         Client.keys.refresh.refresh_token = resp.refresh_token || null;
         Client.keys.refresh.access_token = resp.access_token;
-        let refreshIn = (resp.expires_at - 5) * 1000 - Date.now()
-        
+        let refreshIn = (resp.expires_at - 5) * 1000 - Date.now();
+
         // console.log(`${chalk.greenBright("SUCCESS!")} Token Acquired!\nNext refresh in: ${chalk.yellow(`${Math.floor(refreshIn / 1000)} seconds`)} ${chalk.blueBright(`(${new Date((resp.expires_at - 10) * 1000).toLocaleTimeString("en-US")})`)}`);
-        setTimeout(() => { this._refreshToken() }, refreshIn);
+        setTimeout(() => {
+          this._refreshToken();
+        }, refreshIn);
 
         if (!this.online) {
           if (Client.scopes.identity) {
-            this.user = new (require("./user.js"))(await Client.APIRequest({ type: "GET", path: "identity" }));
+            this.user = new (require("./user.js"))(
+              await Client.APIRequest({ type: "GET", path: "identity" })
+            );
           } else {
             this.user = undefined;
             new OAuthWarning({
               message: 'Missing "Identity" Scope',
-              warning: "Client user data will be undefined!"
+              warning: "Client user data will be undefined!",
             });
           }
 
-          if (!Client.scopes.read) new OAuthWarning({
-            message: 'Missing "Read" Scope',
-            warning: "Post and Comment events will not be emitted!"
-          });
+          if (!Client.scopes.read)
+            new OAuthWarning({
+              message: 'Missing "Read" Scope',
+              warning: "Post and Comment events will not be emitted!",
+            });
 
           this.startTime = Date.now();
           this.emit("login");
           this.online = true;
         }
-      }).catch(e => console.error(e));
+      })
+      .catch((e) => console.error(e));
   }
 
   _checkEvents() {

@@ -69,8 +69,6 @@ class OAuthError extends Error {
     console.log(stack.join("\n"));
 
     this.message = ""; this.stack = "";
-
-    if (this.fatal) process.exit();
   }
 }
 
