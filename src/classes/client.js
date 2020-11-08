@@ -77,23 +77,37 @@ class Client extends EventEmitter {
       }); return;
     }
 
-    let resp = await fetch(
-      options.path.startsWith(`https://${options.domain}/`)
-      ? options.path
-      : `https://${options.domain}/api/v1/${options.path.toLowerCase()}`,
-      {
-        method: options.type,
-        headers: {
-          Authorization: `Bearer ${Client.keys.refresh.access_token}`,
-          "X-User-Type": "Bot",
-          "X-Library": "ruqqus-js",
-          "X-Supports": "auth",
-          'User-Agent': Client.userAgent
-        },
-      }
-    )
+    let requrl = options.path.startsWith(`https://${options.domain}/`)
+    ? options.path
+    : `https://${options.domain}/api/v1/${options.path.toLowerCase()}`
 
+    let reqbody = ''
+
+    for (let [key, value] of Object.entries(options.options || {})) {
+      reqbody += `${key}=${value}&`
+    }
+
+    reqbody = reqbody.slice(0, -1)
+
+    let reqhead = {
+      method: options.type,
+      headers: {
+        Authorization: `Bearer ${Client.keys.refresh.access_token}`,
+        "X-User-Type": "Bot",
+        "X-Library": "ruqqus-js",
+        "X-Supports": "auth",
+        'User-Agent': Client.userAgent,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: reqbody
+    }
+
+    console.log('DOING REQUEST', requrl, reqhead)
+
+    let resp = await fetch(requrl, reqhead)
     resp.body = await resp.json()
+
+    console.log('GOT RESPONSE', resp)
 
     if (resp.body.error && resp.body.error.startsWith("405")) {
       new OAuthError({
