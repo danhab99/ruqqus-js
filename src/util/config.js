@@ -70,15 +70,15 @@ config.regenerate = function() {
  */
 
 config.get = function(attribute) {
-  try {
-    delete require.cache[require.resolve(path)];
-    let config = require(path);
+  // try {
+  //   delete require.cache[require.resolve(path)];
+  //   let config = require(path);
 
-    if (attribute) return config[attribute];
-    else return config;
-  } catch (e) {
+  //   if (attribute) return config[attribute];
+  //   else return config;
+  // } catch (e) {
     return undefined;
-  }
+  // }
 }
 
 /**
