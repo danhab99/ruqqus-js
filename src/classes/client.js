@@ -31,7 +31,7 @@ class Client extends EventEmitter {
       refresh: options.refresh || cfg.refresh || null,
     } : options;
 
-    Client.keys = {
+    this.keys = {
       code: {
         client_id: options.id,
         client_secret: options.token,
@@ -46,8 +46,8 @@ class Client extends EventEmitter {
       }
     };
 
-    Client.scopes = {};
-    Client.userAgent = options.agent || `@danhab99/scroll-for-ruqqus@${options.id}`;
+    this.scopes = {};
+    this.userAgent = options.agent || `@danhab99/scroll-for-ruqqus@${options.id}`;
     
     this.domain = options.domain || 'ruqqus.com'
 
@@ -92,28 +92,26 @@ class Client extends EventEmitter {
     let reqhead = {
       method: options.type,
       headers: {
-        Authorization: `Bearer ${Client.keys.refresh.access_token}`,
+        Authorization: `Bearer ${this.keys.refresh.access_token}`,
         "X-User-Type": "App",
         "X-Library": "ruqqus-js",
         "X-Supports": "auth",
-        'User-Agent': Client.userAgent,
+        'User-Agent': this.userAgent,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       body: reqbody
     }
 
-    console.log('DOING REQUEST', requrl, reqhead)
-
     let resp = await fetch(requrl, reqhead)
     resp.body = await resp.json()
 
-    console.log('GOT RESPONSE', resp)
+    console.log('RUQQUS FETCH', requrl, reqhead, resp)
 
     if (resp.body.error && resp.body.error.startsWith("405")) {
-      new OAuthError({
+      throw new OAuthError({
         message: "Method Not Allowed",
         code: 405
-      }); return;
+      });
     }
     
     return resp.body;
@@ -123,9 +121,9 @@ class Client extends EventEmitter {
     this.APIRequest({
       type: "POST",
       path: `https://${this.domain}/oauth/grant`,
-      options: Client.keys.refresh.refresh_token
-        ? Client.keys.refresh
-        : Client.keys.code,
+      options: this.keys.refresh.refresh_token
+        ? this.keys.refresh
+        : this.keys.code,
       domain: this.domain
     })
       .then(async (resp) => {
@@ -150,7 +148,7 @@ class Client extends EventEmitter {
         }
 
         resp.scopes.split(",").forEach((s) => {
-          Client.scopes[s] = true;
+          this.scopes[s] = true;
         });
 
         if (
@@ -161,8 +159,9 @@ class Client extends EventEmitter {
           config.set("refresh", resp.refresh_token);
         }
 
-        Client.keys.refresh.refresh_token = resp.refresh_token || null;
-        Client.keys.refresh.access_token = resp.access_token;
+        this.keys.refresh.refresh_token = resp.refresh_token || null;
+        this.keys.refresh.access_token = resp.access_token;
+        this.emit('refresh')
         let refreshIn = (resp.expires_at - 5) * 1000 - Date.now();
 
         // console.log(`${chalk.greenBright("SUCCESS!")} Token Acquired!\nNext refresh in: ${chalk.yellow(`${Math.floor(refreshIn / 1000)} seconds`)} ${chalk.blueBright(`(${new Date((resp.expires_at - 10) * 1000).toLocaleTimeString("en-US")})`)}`);
@@ -171,7 +170,7 @@ class Client extends EventEmitter {
         }, refreshIn);
 
         if (!this.online) {
-          if (Client.scopes.identity) {
+          if (this.scopes.identity) {
             this.user = new (require("./user.js"))(
               await this.APIRequest({ type: "GET", path: "identity" })
             );
@@ -183,7 +182,7 @@ class Client extends EventEmitter {
             });
           }
 
-          if (!Client.scopes.read)
+          if (!this.scopes.read)
             new OAuthWarning({
               message: 'Missing "Read" Scope',
               warning: "Post and Comment events will not be emitted!",
@@ -201,7 +200,7 @@ class Client extends EventEmitter {
     setTimeout(() => { this._checkEvents() }, 10000);
     
     if (this.eventNames().includes("post")) {
-      if (!Client.scopes.read) return;
+      if (!this.scopes.read) return;
 
       this.APIRequest({ type: "GET", path: "all/listing", options: { sort: "new" } })
         .then((resp) => {
@@ -223,7 +222,7 @@ class Client extends EventEmitter {
     }
 
     if (this.eventNames().includes("comment")) {
-      if (!Client.scopes.read) return;
+      if (!this.scopes.read) return;
       
       this.APIRequest({ type: "GET", path: "front/comments", options: { sort: "new" } })
         .then((resp) => {
@@ -265,7 +264,7 @@ class Client extends EventEmitter {
        */
     
       fetch: async (name) => {
-        if (!Client.scopes.read) {
+        if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
             code: 401
@@ -301,7 +300,7 @@ class Client extends EventEmitter {
        */
 
       fetch: async (id) => {
-        if (!Client.scopes.read) {
+        if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
             code: 401
@@ -328,7 +327,7 @@ class Client extends EventEmitter {
        */
 
       fetch: async (id) => {
-        if (!Client.scopes.read) {
+        if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
             code: 401
@@ -355,7 +354,7 @@ class Client extends EventEmitter {
        */
 
       fetch: async (username) => {
-        if (!Client.scopes.read) {
+        if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
             code: 401
