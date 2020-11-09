@@ -42,12 +42,13 @@ class Client extends EventEmitter {
         client_id: options.id,
         client_secret: options.token,
         grant_type: "refresh",
-        refresh_token: options.refresh || null
+        refresh_token: options.refresh || null,
+        access_token: options.accessToken || null
       }
     };
 
     this.scopes = {};
-    this.userAgent = options.agent || `@danhab99/scroll-for-ruqqus@${options.id}`;
+    this.userAgent = options.agent || `scroll-for-ruqqus@${options.id}`;
     
     this.domain = options.domain || 'ruqqus.com'
 
@@ -376,6 +377,21 @@ class Client extends EventEmitter {
         let resp = await this.APIRequest({ type: "GET", path: `is_available/${username}` });
 
         return Object.values(resp)[0];
+      }
+    }
+  }
+
+  get feeds() {
+    return {
+      frontpage: async () => {
+        if (!this.scopes.read) {
+          new OAuthError({
+            message: 'Missing "Read" Scope',
+            code: 401
+          }); return;
+        }
+
+        return new (require('./feed'))(await this.APIRequest({type: "GET", path: 'all/listing'}))
       }
     }
   }
