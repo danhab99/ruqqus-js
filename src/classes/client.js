@@ -47,7 +47,7 @@ class Client extends EventEmitter {
     };
 
     Client.scopes = {};
-    Client.userAgent = options.agent || `ruqqus-js@${options.id}`;
+    Client.userAgent = options.agent || `@danhab99/scroll-for-ruqqus@${options.id}`;
     
     this.domain = options.domain || 'ruqqus.com'
 
@@ -68,7 +68,7 @@ class Client extends EventEmitter {
    * @returns {Object} The request response body.
    */
   
-  static async APIRequest(options) {
+  async APIRequest(options) {
     let methods = [ "GET", "POST" ];
     if (!options.type || !options.path || !methods.includes(options.type.toUpperCase())) {
       new OAuthError({
@@ -77,9 +77,9 @@ class Client extends EventEmitter {
       }); return;
     }
 
-    let requrl = options.path.startsWith(`https://${options.domain}/`)
+    let requrl = options.path.startsWith(`https://${this.domain}/`)
     ? options.path
-    : `https://${options.domain}/api/v1/${options.path.toLowerCase()}`
+    : `https://${this.domain}/api/v1/${options.path.toLowerCase()}`
 
     let reqbody = ''
 
@@ -93,7 +93,7 @@ class Client extends EventEmitter {
       method: options.type,
       headers: {
         Authorization: `Bearer ${Client.keys.refresh.access_token}`,
-        "X-User-Type": "Bot",
+        "X-User-Type": "App",
         "X-Library": "ruqqus-js",
         "X-Supports": "auth",
         'User-Agent': Client.userAgent,
@@ -120,7 +120,7 @@ class Client extends EventEmitter {
   }
   
   _refreshToken() {
-    Client.APIRequest({
+    this.APIRequest({
       type: "POST",
       path: `https://${this.domain}/oauth/grant`,
       options: Client.keys.refresh.refresh_token
@@ -173,7 +173,7 @@ class Client extends EventEmitter {
         if (!this.online) {
           if (Client.scopes.identity) {
             this.user = new (require("./user.js"))(
-              await Client.APIRequest({ type: "GET", path: "identity" })
+              await this.APIRequest({ type: "GET", path: "identity" })
             );
           } else {
             this.user = undefined;
@@ -203,7 +203,7 @@ class Client extends EventEmitter {
     if (this.eventNames().includes("post")) {
       if (!Client.scopes.read) return;
 
-      Client.APIRequest({ type: "GET", path: "all/listing", options: { sort: "new" } })
+      this.APIRequest({ type: "GET", path: "all/listing", options: { sort: "new" } })
         .then((resp) => {
           if (resp.error) return;
 
@@ -225,7 +225,7 @@ class Client extends EventEmitter {
     if (this.eventNames().includes("comment")) {
       if (!Client.scopes.read) return;
       
-      Client.APIRequest({ type: "GET", path: "front/comments", options: { sort: "new" } })
+      this.APIRequest({ type: "GET", path: "front/comments", options: { sort: "new" } })
         .then((resp) => {
           if (resp.error) return;
 
@@ -272,7 +272,7 @@ class Client extends EventEmitter {
           }); return;
         }
     
-        return new (require("./guild.js"))(await Client.APIRequest({ type: "GET", path: `guild/${name}` }));
+        return new (require("./guild.js"))(await this.APIRequest({ type: "GET", path: `guild/${name}` }));
       },
     
       /**
@@ -284,7 +284,7 @@ class Client extends EventEmitter {
     
       isAvailable: async (name) => {
         if (!name) return undefined;
-        let resp = await Client.APIRequest({ type: "GET", path: `board_available/${name}` });
+        let resp = await this.APIRequest({ type: "GET", path: `board_available/${name}` });
     
         return resp.available;
       }
@@ -308,7 +308,7 @@ class Client extends EventEmitter {
           }); return;
         }
 
-        let post = new (require("./post.js"))(await Client.APIRequest({ type: "GET", path: `post/${id}` }));
+        let post = new (require("./post.js"))(await this.APIRequest({ type: "GET", path: `post/${id}` }));
 
         this.cache.push(post);
         return post;
@@ -335,7 +335,7 @@ class Client extends EventEmitter {
           }); return;
         }
 
-        let comment = new (require("./comment.js"))(await Client.APIRequest({ type: "GET", path: `comment/${id}` }));
+        let comment = new (require("./comment.js"))(await this.APIRequest({ type: "GET", path: `comment/${id}` }));
 
         this.cache.push(comment);
         return comment;
@@ -362,7 +362,7 @@ class Client extends EventEmitter {
           }); return;
         }
 
-        return new (require("./user.js"))(await Client.APIRequest({ type: "GET", path: `user/${username}` }));
+        return new (require("./user.js"))(await this.APIRequest({ type: "GET", path: `user/${username}` }));
       },
 
       /**
@@ -374,7 +374,7 @@ class Client extends EventEmitter {
       
       isAvailable: async (username) => {
         if (!username) return undefined;
-        let resp = await Client.APIRequest({ type: "GET", path: `is_available/${username}` });
+        let resp = await this.APIRequest({ type: "GET", path: `is_available/${username}` });
 
         return Object.values(resp)[0];
       }
