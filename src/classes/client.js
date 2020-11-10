@@ -121,17 +121,10 @@ class Client extends EventEmitter {
       resp.body = JSON.parse(resp.body)
     }
     catch (e) {
-      console.warn('Not a json object')
+      
     }
 
     console.log('RUQQUS FETCH', requrl, reqhead, resp)
-
-    // if (resp.body.error && resp.body.error.startsWith("405")) {
-    //   throw new OAuthError({
-    //     message: "Method Not Allowed",
-    //     code: 405
-    //   });
-    // }
     
     return resp.body;
   }
