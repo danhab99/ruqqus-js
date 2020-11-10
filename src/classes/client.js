@@ -81,9 +81,17 @@ class Client extends EventEmitter {
       }); return;
     }
 
+    let query = options.query ? '?' : ''
+
+    for (let [key, value] of Object.entries(options.query || {})) {
+      query += `${key}=${value}&`
+    }
+
+    query.slice(0, -1)
+
     let requrl = options.path.startsWith(`https://${this.domain}/`)
     ? options.path
-    : `https://${this.domain}/api/v1/${options.path.toLowerCase()}`
+    : `https://${this.domain}/api/v1/${options.path.toLowerCase()}${query}`
 
     let reqbody = ''
 
@@ -393,14 +401,14 @@ class Client extends EventEmitter {
 
   get feeds() {
     return {
-      frontpage: () => {
+      frontpage: (page=0) => {
         if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
             code: 401
           }); return;
         }
-        return this.APIRequest({type: "GET", path: 'all/listing'}).then(data => {
+        return this.APIRequest({type: "GET", path: 'all/listing', query: { page }}).then(data => {
           return new Feed(data, this)
         })
       }
