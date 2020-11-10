@@ -8,7 +8,7 @@ class Guild {
     Object.assign(this, this.formatData(data));
   }
 
-  static formatData(resp) {
+  formatData(resp) {
     if (!resp.id) return undefined;
 
     return {

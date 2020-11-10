@@ -8,7 +8,7 @@ class User {
     Object.assign(this, this.formatData(data));
   }
 
-  static formatData(resp) {
+  formatData(resp) {
     if (!resp.id) return undefined;
 
     if (resp.is_banned) {
@@ -51,7 +51,7 @@ class User {
       },
       badges: 
         resp.badges.map(badge => {
-          return new Badge(badge, client);
+          return new Badge(badge, this.client);
         }),
     }
   }
