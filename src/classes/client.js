@@ -404,6 +404,19 @@ class Client extends EventEmitter {
         return this.APIRequest({type: "GET", path: 'all/listing', query: { page }}).then(data => {
           return new Feed(data, this)
         })
+      },
+
+      guild: (name, page=0) => {
+        if (!this.scopes.read) {
+          new OAuthError({
+            message: 'Missing "Read" Scope',
+            code: 401
+          }); return;
+        }
+
+        return this.APIRequest({type: "GET", path: `guild/${name}/listing`, query: { page }}).then(data => {
+          return new Feed(data, this)
+        })
       }
     }
   }
