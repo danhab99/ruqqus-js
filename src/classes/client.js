@@ -394,19 +394,19 @@ class Client extends EventEmitter {
 
   get feeds() {
     return {
-      frontpage: (page=0) => {
+      frontpage: (page=0, sort='hot') => {
         if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
             code: 401
           }); return;
         }
-        return this.APIRequest({type: "GET", path: 'all/listing', query: { page }}).then(data => {
+        return this.APIRequest({type: "GET", path: 'all/listing', query: { page, sort }}).then(data => {
           return new Feed(data, this)
         })
       },
 
-      guild: (name, page=0) => {
+      guild: (name, page=0, sort='hot') => {
         if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
@@ -414,7 +414,7 @@ class Client extends EventEmitter {
           }); return;
         }
 
-        return this.APIRequest({type: "GET", path: `guild/${name}/listing`, query: { page }}).then(data => {
+        return this.APIRequest({type: "GET", path: `guild/${name}/listing`, query: { page, sort }}).then(data => {
           return new Feed(data, this)
         })
       }
