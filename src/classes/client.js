@@ -4,6 +4,9 @@ const { OAuthWarning, OAuthError } = require("./error.js");
 const SubmissionCache = require("./cache.js");
 const config = require("../util/config.js");
 
+const Feed = require('./feed');
+const Post = require("./post.js");
+
 class Client extends EventEmitter {
   /**
    * Creates a new ruqqus-js Client instance.
@@ -104,16 +107,23 @@ class Client extends EventEmitter {
     }
 
     let resp = await fetch(requrl, reqhead)
-    resp.body = await resp.json()
+    resp.body = await resp.text()
+
+    try {
+      resp.body = JSON.parse(resp.body)
+    }
+    catch (e) {
+      console.warn('Not a json object')
+    }
 
     console.log('RUQQUS FETCH', requrl, reqhead, resp)
 
-    if (resp.body.error && resp.body.error.startsWith("405")) {
-      throw new OAuthError({
-        message: "Method Not Allowed",
-        code: 405
-      });
-    }
+    // if (resp.body.error && resp.body.error.startsWith("405")) {
+    //   throw new OAuthError({
+    //     message: "Method Not Allowed",
+    //     code: 405
+    //   });
+    // }
     
     return resp.body;
   }
@@ -308,10 +318,10 @@ class Client extends EventEmitter {
           }); return;
         }
 
-        let post = new (require("./post.js"))(await this.APIRequest({ type: "GET", path: `post/${id}` }));
-
-        this.cache.push(post);
-        return post;
+        return this.APIRequest({ type: "GET", path: `post/${id}` }).then(post => {
+          post = new Post(post, this)
+          return post;
+        })
       },
 
       cache: new SubmissionCache()
@@ -383,15 +393,16 @@ class Client extends EventEmitter {
 
   get feeds() {
     return {
-      frontpage: async () => {
+      frontpage: () => {
         if (!this.scopes.read) {
           new OAuthError({
             message: 'Missing "Read" Scope',
             code: 401
           }); return;
         }
-
-        return new (require('./feed'))(await this.APIRequest({type: "GET", path: 'all/listing'}))
+        return this.APIRequest({type: "GET", path: 'all/listing'}).then(data => {
+          return new Feed(data, this)
+        })
       }
     }
   }

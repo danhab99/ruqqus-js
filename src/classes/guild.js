@@ -1,9 +1,11 @@
-const Client = require("./client.js");
 const { OAuthWarning, OAuthError } = require("./error.js");
 
+const User = require('./user')
+
 class Guild {
-  constructor(data) {
-    Object.assign(this, Guild.formatData(data));
+  constructor(data, client) {
+    this.client = client
+    Object.assign(this, this.formatData(data));
   }
 
   static formatData(resp) {
@@ -22,7 +24,7 @@ class Guild {
       full_link: `https://ruqqus.com${resp.permalink}`,
       subscribers: resp.subscriber_count,
       guildmasters: resp.guildmasters.map(mod => {
-        return new (require("./user.js"))(mod);
+        return new User(mod, this.client);
       }),
       icon_url: resp.profile_url.startsWith("/assets") ? `https://ruqqus.com/${resp.profile_url}` : resp.profile_url,
       banner_url: resp.banner_url.startsWith("/assets") ? `https://ruqqus.com/${resp.banner_url}` : resp.banner_url,
@@ -47,28 +49,28 @@ class Guild {
    */
 
   post(title, options) {
-    if (!Client.scopes.create) {
-      new OAuthError({
+    if (!this.client.scopes.create) {
+      throw new OAuthError({
         message: 'Missing "Create" Scope',
         code: 401
-      }); return;
+      }); 
     }
 
     if (!title || title == " ") {
-      new OAuthError({
+      throw new OAuthError({
         message: "No Post Title Provided!",
         code: 405
-      }); return;
+      }); 
     }
 
     if (!options || ((!options.body || options.body == " ") && (!options.url || options.url == " "))) {
-      new OAuthError({
+      throw new OAuthError({
         message: "No Post Body or URL Provided!",
         code: 405
-      }); return;
+      }); 
     }
 
-    Client.APIRequest({ type: "POST", path: "submit", options: { board: this.name, title: title, ...options || {} } })
+    this.client.APIRequest({ type: "POST", path: "submit", options: { board: this.name, title: title, ...options || {} } })
       .then((resp) => {
         if (!resp.guild_name == "general" && this.name.toLowerCase() != "general") new OAuthWarning({
           message: "Invalid Guild Name",
@@ -101,15 +103,15 @@ class Guild {
   async fetchPosts(options) {
     const Post = require("./post.js");
 
-    if (!Client.scopes.read) {
-      new OAuthError({
+    if (!this.client.scopes.read) {
+      throw new OAuthError({
         message: 'Missing "Read" Scope',
         code: 401
-      }); return;
+      }); 
     }
 
     let posts = [];
-    let resp = await Client.APIRequest({ type: "GET", path: `guild/${this.name}/listing`, options: options ? { 
+    let resp = await this.client.APIRequest({ type: "GET", path: `guild/${this.name}/listing`, options: options ? { 
       sort: options.sort || "new", 
       page: options.page || 1, 
       t: options.filter || "all", 
@@ -138,16 +140,16 @@ class Guild {
   async fetchComments(options) {
     const Comment = require("./comment.js");
 
-    if (!Client.scopes.read) {
-      new OAuthError({
+    if (!this.client.scopes.read) {
+      throw new OAuthError({
         message: 'Missing "Read" Scope',
         code: 401
-      }); return;
+      }); 
     }
 
     let comments = [];
 
-    let resp = await Client.APIRequest({ type: "GET", path: `guild/${this.name}/comments`, options: { page: options && options.page ? options.page : 1 } });
+    let resp = await this.client.APIRequest({ type: "GET", path: `guild/${this.name}/comments`, options: { page: options && options.page ? options.page : 1 } });
     if (options && options.limit) resp.data.splice(options.limit, resp.data.length - options.limit);
     
     for await (let comment of resp.data) {

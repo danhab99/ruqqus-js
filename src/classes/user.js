@@ -1,9 +1,11 @@
-const Client = require("./client.js");
 const { OAuthError } = require("./error.js");
 
+const Badge = require('./badge')
+
 class User {
-  constructor(data) {
-    Object.assign(this, User.formatData(data));
+  constructor(data, client) {
+    this.client = client
+    Object.assign(this, this.formatData(data));
   }
 
   static formatData(resp) {
@@ -49,7 +51,7 @@ class User {
       },
       badges: 
         resp.badges.map(badge => {
-          return new (require("./badge.js"))(badge);
+          return new Badge(badge, client);
         }),
     }
   }
@@ -66,16 +68,16 @@ class User {
   async fetchPosts(options) {
     const Post = require("./post.js");
 
-    if (!Client.scopes.read) {
-      new OAuthError({
+    if (!this.client.scopes.read) {
+      throw new OAuthError({
         message: 'Missing "Read" Scope',
         code: 401
-      }); return;
+      }); 
     }
 
     let posts = [];
     
-    let resp = await Client.APIRequest({ type: "GET", path: `user/${this.username}/listing`, options: { page: options && options.page ? options.page : 1 } });
+    let resp = await this.client.APIRequest({ type: "GET", path: `user/${this.username}/listing`, options: { page: options && options.page ? options.page : 1 } });
     if (options && options.limit) resp.data.splice(options.limit, resp.data.length - options.limit);
 
     for await (let post of resp.data) {
@@ -97,16 +99,16 @@ class User {
   async fetchComments(limit, page) {
     const Comment = require("./comment.js");
 
-    if (!Client.scopes.read) {
-      new OAuthError({
+    if (!this.client.scopes.read) {
+      throw new OAuthError({
         message: 'Missing "Read" Scope',
         code: 401
-      }); return;
+      }); 
     }
 
     let comments = [];
 
-    let resp = await Client.APIRequest({ type: "GET", path: `user/${this.username}/comments`, options: { page: options && options.page ? options.page : 1 } });
+    let resp = await this.client.APIRequest({ type: "GET", path: `user/${this.username}/comments`, options: { page: options && options.page ? options.page : 1 } });
     if (options && options.limit) resp.data.splice(options.limit, resp.data.length - options.limit);
     
     for await (let comment of resp.data) {

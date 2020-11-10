@@ -1,9 +1,10 @@
 class Badge {
-  constructor(data) {
-    Object.assign(this, Badge.formatData(data));
+  constructor(data, client) {
+    this.client = client
+    Object.assign(this, this.formatData(data));
   }
 
-  static formatData(resp) {
+  formatData(resp) {
     if (!resp.name) return undefined;
     
     return {

@@ -3,14 +3,15 @@ const { OAuthError } = require("./error.js");
 const Post = require('./post')
 
 class Feed {
-  constructor(data) {
+  constructor(data, client) {
     this._hasNext = data.next_exists
-    Object.assign(this, Feed.formatData(data));
+    this.client = client
+    Object.assign(this, this.formatData(data));
   }
   
-  static formatData(resp) {
+  formatData(resp) {
     return {
-      posts: resp.data.map(d => new Post(d))
+      posts: resp.data.map(d => new Post(d, this.client))
     }
   }  
 }
