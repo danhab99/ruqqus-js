@@ -433,6 +433,23 @@ class Client extends EventEmitter {
       }
     }
   }
+
+  submitPost(board, title, url, body) {
+    if (!this.scopes) {
+      new OAuthError({
+        message: 'Missing "Read" Scope',
+        code: 401
+      }); return;
+    }
+
+    return this.APIRequest({
+      type: "POST",
+      path: 'submit',
+      options: {board, title, url, body}
+    }).then(resp => {
+      return new Post(resp, this)      
+    })
+  }
 }
 
 module.exports = Client;
