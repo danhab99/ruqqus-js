@@ -283,7 +283,7 @@ class Client extends EventEmitter {
           }); return;
         }
     
-        return new (require("./guild.js"))(await this.APIRequest({ type: "GET", path: `guild/${name}` }));
+        return new (require("./guild.js"))(await this.APIRequest({ type: "GET", path: `guild/${name}` }), this);
       },
     
       /**
