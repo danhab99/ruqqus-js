@@ -5,8 +5,8 @@ const Guild = require("./guild.js")
 
 class Post {
   constructor(data, client) {
-    Object.assign(this, this.formatData(data));
     this.client = client
+    Object.assign(this, this.formatData(data));
   }
   
   formatData(resp) {
