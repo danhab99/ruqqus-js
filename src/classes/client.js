@@ -126,11 +126,39 @@ class Client extends EventEmitter {
 
     console.log('RUQQUS FETCH', requrl, reqhead, resp)
     
-    return resp.body;
+    if (resp.ok) {
+      return resp.body;
+    }
+    else {
+      switch (resp.status) {
+        case 401:
+          debugger
+          console.error('RUQQUS TOKENS EXPIRED')
+          return this._refreshToken().then(() => this.APIRequest(options))
+
+        case 404:
+          throw new Error('Not found', resp)
+
+        case 405:
+          throw new Error('Method not allowed')
+
+        case 413:
+          throw new Error('Bad useragent')
+        
+        case 500:
+          throw new Error('Server down')
+
+        case 503:
+          throw new Error('Server had an internal exception')
+
+        default:
+          throw new Error('Unknown response code', resp)
+      }
+    }
   }
   
   _refreshToken() {
-    this.APIRequest({
+    return this.APIRequest({
       type: "POST",
       path: `https://${this.domain}/oauth/grant`,
       options: this.keys.refresh.refresh_token
@@ -175,9 +203,10 @@ class Client extends EventEmitter {
         this.keys.refresh.access_token = resp.access_token;
         this.emit('refresh')
         let refreshIn = (resp.expires_at - 5) * 1000 - Date.now();
-
-        // console.log(`${chalk.greenBright("SUCCESS!")} Token Acquired!\nNext refresh in: ${chalk.yellow(`${Math.floor(refreshIn / 1000)} seconds`)} ${chalk.blueBright(`(${new Date((resp.expires_at - 10) * 1000).toLocaleTimeString("en-US")})`)}`);
+        console.log('Refreshing tokens in', refreshIn)
+        
         setTimeout(() => {
+          console.log('Refreshing tokens')
           this._refreshToken();
         }, refreshIn);
 
