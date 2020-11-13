@@ -10,7 +10,9 @@ class Post {
   }
   
   formatData(resp) {
-    if (!resp.id) return undefined;
+    if (!resp.id || !resp.author) {
+      return undefined
+    };
 
     return {
       author: new User(resp.author, this.client),
