@@ -435,6 +435,18 @@ class Client extends EventEmitter {
         })
       },
 
+      all: (page=0, sort='hot') => {
+        if (!this.scopes.read) {
+          new OAuthError({
+            message: 'Missing "Read" Scope',
+            code: 401
+          }); return;
+        }
+        return this.APIRequest({type: "GET", path: 'all/listing', query: { page, sort }}).then(data => {
+          return new Feed(data, this)
+        })
+      },
+
       guild: (name, page=0, sort='hot') => {
         if (!this.scopes.read) {
           new OAuthError({
