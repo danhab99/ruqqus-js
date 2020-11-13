@@ -430,7 +430,7 @@ class Client extends EventEmitter {
             code: 401
           }); return;
         }
-        return this.APIRequest({type: "GET", path: 'all/listing', query: { page, sort }}).then(data => {
+        return this.APIRequest({type: "GET", path: 'front/listing', query: { page, sort }}).then(data => {
           return new Feed(data, this)
         })
       },
