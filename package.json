@@ -25,7 +25,6 @@
   },
   "homepage": "https://github.com/acikek/ruqqus-js#readme",
   "dependencies": {
-    "@react-native-async-storage/async-storage": "git+https://github.com/react-native-async-storage/async-storage.git",
     "readline": "^1.3.0"
   }
 }

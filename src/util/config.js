@@ -1,12 +1,12 @@
 // const AsyncStorage = require('@react-native-async-storage/async-storage');
-const { AsyncStorage } = require('react-native')
+// const { AsyncStorage } = require('react-native')
 
 const { OAuthError } = require("../classes/error.js");
 // let path = `${__dirname}/config.json`;
 
 function update(obj) {
   // fs.writeFileSync(path, JSON.stringify(obj, null, 2));
-  AsyncStorage.setItem('ruqqusjs', JSON.stringify(obj, null, 2))
+  // AsyncStorage.setItem('ruqqusjs', JSON.stringify(obj, null, 2))
 }
 
 /**
@@ -46,20 +46,20 @@ function config(options) {
  */
 
 config.regenerate = function() {
-  try {
-    // fs.accessSync(path);
-    AsyncStorage.getItem('ruqqusjs')
-  } catch (e) {
-    update({ 
-      autosave: null,
-      keys: {
-        id: "",
-        token: ""
-      },
-      agent: "",
-      refresh: ""
-    });
-  }
+  // try {
+  //   // fs.accessSync(path);
+  //   AsyncStorage.getItem('ruqqusjs')
+  // } catch (e) {
+  //   update({ 
+  //     autosave: null,
+  //     keys: {
+  //       id: "",
+  //       token: ""
+  //     },
+  //     agent: "",
+  //     refresh: ""
+  //   });
+  // }
 }
 
 /**
@@ -89,11 +89,11 @@ config.get = function(attribute) {
  */
 
 config.set = function(attribute, value) {
-  let config = this.get();
-  if (typeof config[attribute]) {
-    config[attribute] = value;
-    update(config);
-  }
+  // let config = this.get();
+  // if (typeof config[attribute]) {
+  //   config[attribute] = value;
+  //   update(config);
+  // }
 }
 
 /**
