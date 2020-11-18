@@ -1,4 +1,3 @@
-const Client = require("./client.js");
 const { OAuthError } = require("./error.js");
 const Post = require('./post')
 
