@@ -113,6 +113,8 @@ class Client extends EventEmitter {
       },
       body: reqbody
     }
+    console.log('RUQQUS FETCH START', requrl, reqhead)
+    let start = Date.now()
 
     let resp = await fetch(requrl, reqhead)
     resp.body = await resp.text()
@@ -124,7 +126,7 @@ class Client extends EventEmitter {
       
     }
 
-    console.log('RUQQUS FETCH', requrl, reqhead, resp)
+    console.log('RUQQUS FETCH DONE (' + (Date.now() - start) + 'ms)', requrl, reqhead, resp)
     
     if (resp.ok) {
       return resp.body;
