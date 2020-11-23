@@ -23,37 +23,39 @@ class Client extends EventEmitter {
   constructor(options) {
     super();
 
-    if (!options) options = {};
-    let cfg = config.get();
+    // options = cfg ? {
+    //   id: options.id || cfg.id || "",
+    //   token: options.token || cfg.token || "",
+    //   code: options.code || "",
+    //   agent: options.agent || cfg.agent || null,
+    //   refresh: options.refresh || cfg.refresh || null,
+    // } : options;
 
-    options = cfg ? {
-      id: options.id || cfg.id || "",
-      token: options.token || cfg.token || "",
-      code: options.code || "",
-      agent: options.agent || cfg.agent || null,
-      refresh: options.refresh || cfg.refresh || null,
-    } : options;
-
-    this.keys = {
-      code: {
-        client_id: options.id,
-        client_secret: options.token,
-        grant_type: "code",
-        code: options.code,
-      },
-      refresh: {
-        client_id: options.id,
-        client_secret: options.token,
-        grant_type: "refresh",
-        refresh_token: options.refresh || null,
-        access_token: options.accessToken || null
-      }
-    };
+    // this.keys = {
+    //   code: {
+    //     client_id: options.id,
+    //     client_secret: options.token,
+    //     grant_type: "code",
+    //     code: options.code,
+    //   },
+    //   refresh: {
+    //     client_id: options.id,
+    //     client_secret: options.token,
+    //     grant_type: "refresh",
+    //     refresh_token: options.refresh || null,
+    //     access_token: options.accessToken || null
+    //   }
+    // };
 
     this.scopes = {};
-    this.userAgent = options.agent || `scroll-for-ruqqus@${options.id}`;
+    this.id = options.id
+    this.userAgent = `scroll-for-ruqqus@${options.id}`;
     
-    this.domain = options.domain || 'ruqqus.com'
+    this.domain = options.domain
+    this.auth_domain = options.auth_domain
+
+    this.access_token = options.access_token
+    this.refresh_token = options.refresh_token
 
     this.startTime = 0;
     this.online = false,
@@ -104,7 +106,7 @@ class Client extends EventEmitter {
     let reqhead = {
       method: options.type,
       headers: {
-        Authorization: `Bearer ${this.keys.refresh.access_token}`,
+        Authorization: `Bearer ${this.access_token}`,
         "X-User-Type": "App",
         "X-Library": "ruqqus-js",
         "X-Supports": "auth",
