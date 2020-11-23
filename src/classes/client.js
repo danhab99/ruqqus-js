@@ -20,7 +20,7 @@ class Client extends EventEmitter {
    * @constructor
    */
 
-  constructor(options) {
+  constructor(options={}) {
     super();
 
     // options = cfg ? {
@@ -162,14 +162,16 @@ class Client extends EventEmitter {
   }
   
   _refreshToken() {
-    return this.APIRequest({
-      type: "POST",
-      path: `https://${this.domain}/oauth/grant`,
-      options: this.keys.refresh.refresh_token
-        ? this.keys.refresh
-        : this.keys.code,
-      domain: this.domain
+    return fetch(`https://${this.auth_domain}/auth/${this.id}/refresh`, {
+      method: 'POST',
+      body: JSON.stringify({
+        refresh_token: this.refresh_token
+      }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
+      .then(rsp => rsp.json())
       .then(async (resp) => {
         if (resp.oauth_error) {
           let type;
@@ -195,16 +197,8 @@ class Client extends EventEmitter {
           this.scopes[s] = true;
         });
 
-        if (
-          config.get("autosave") === true &&
-          (!config.get("refresh") || config.get("refresh") == " ") &&
-          resp.refresh_token
-        ) {
-          config.set("refresh", resp.refresh_token);
-        }
-
-        this.keys.refresh.refresh_token = resp.refresh_token || null;
-        this.keys.refresh.access_token = resp.access_token;
+        this.refresh_token = resp.refresh_token || null;
+        this.access_token = resp.access_token;
         this.emit('refresh')
         let refreshIn = (resp.expires_at - 5) * 1000 - Date.now();
         console.log('Refreshing tokens in', refreshIn)
