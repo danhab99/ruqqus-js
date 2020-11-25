@@ -162,6 +162,7 @@ class Client extends EventEmitter {
   }
   
   _refreshToken() {
+    console.log('RUQQUS REFRESH', this.refresh_token, this.id)
     return fetch(`https://${this.auth_domain}/auth/${this.id}/refresh`, {
       method: 'POST',
       body: JSON.stringify({
@@ -173,6 +174,12 @@ class Client extends EventEmitter {
     })
       .then(rsp => rsp.json())
       .then(async (resp) => {
+        console.log('REFRESH COMPLETE', resp)
+
+        if (resp.err && resp.err === 'Site does not exist') {
+          return new OAuthError({message: resp.err})
+        }
+
         if (resp.oauth_error) {
           let type;
 
