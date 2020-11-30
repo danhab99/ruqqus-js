@@ -10,12 +10,15 @@ class Post {
   }
   
   formatData(resp) {
-    if (!resp.id || !resp.author) {
+    if (!resp.id || !resp.author_name) {
       return undefined
     };
 
     return {
-      author: new User(resp.author, this.client),
+      // author: new User(resp.author, this.client),
+      author: {
+        username: resp.author_name
+      },
       content: {
         title: resp.title,
         body: {
