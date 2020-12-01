@@ -15,10 +15,7 @@ class Post {
     };
 
     return {
-      // author: new User(resp.author, this.client),
-      author: {
-        username: resp.author_name
-      },
+      author_username: resp.author_name, // This is ridiculous.
       content: {
         title: resp.title,
         body: {
@@ -48,6 +45,8 @@ class Post {
         deleted: resp.is_deleted,
         nsfw: resp.is_nsfw,
         nsfl: resp.is_nsfl,
+        offensive: resp.is_offensive,
+        political: resp.is_politics,
         edited: resp.edited_utc > 0,
         yanked: resp.original_guild ? true : false
       },

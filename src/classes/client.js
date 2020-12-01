@@ -16,7 +16,7 @@ class Client extends EventEmitter {
    * @param {String} options.token The Application secret.
    * @param {String} options.code The one-time use authorization code.
    * @param {String} [options.agent] Custom `user_agent`.
-   * @param {String} [options.refresh] Refresh token. Overrides authorization code.
+   * @param {String} [options.refresh] The refresh token. Overrides authorization code.
    * @constructor
    */
 
@@ -70,6 +70,7 @@ class Client extends EventEmitter {
    * @param {Object} options The request parameters.
    * @param {String} options.type The request method.
    * @param {String} options.path The request endpoint.
+   * @param {Object} [options.auth=true] Whether or not the endpoint needs authorization keys.
    * @param {Object} [options.options={}] Extra request options.
    * @returns {Object} The request response body.
    */
@@ -82,6 +83,8 @@ class Client extends EventEmitter {
         code: 405
       }); return;
     }
+    
+    if (options.auth == undefined) options.auth = true;
 
     let query = options.query ? '?' : ''
 

@@ -38,15 +38,7 @@ function config(options) {
 }
 
 /**
- * Regenerates the config file.
- */
-
-config.regenerate = function() {
-
-}
-
-/**
- * Gets an attribute of the config file. If left blank, get the whole file object.
+ * Gets an attribute of the config file. If left blank, gets the whole file object.
  * 
  * @param {String} [attribute] The object attribute to get.
  * @return {*} The attribute value.
