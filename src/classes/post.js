@@ -50,8 +50,8 @@ class Post {
         edited: resp.edited_utc > 0,
         yanked: resp.original_guild ? true : false
       },
-      guild: new Guild(resp.guild, this.client),
-      original_guild: resp.original_guild ? new Guild(resp.original_guild, this.client) : null
+      guild_name: resp.guild_name,
+      original_guild: resp.original_guild ? new (require("./guild.js"))(resp.original_guild) : null // Actual brainlet moment
     }
   }
 
