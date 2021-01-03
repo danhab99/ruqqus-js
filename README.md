@@ -60,7 +60,7 @@ To acquire an authcode, you will need to generate a Ruqqus OAuth2 URL.
 
 #### Manual URL Generation
 
-Start with https://ruqqus.com/oauth/authorize and add the following URL parameters:
+Start with `https://ruqqus.com/oauth/authorize` and add the following URL parameters:
 
 - `client_id` - Your application's Client ID
 - `redirect_uri` - The redirect URI (or one of the URIs) specified in your application information. Must not use HTTP unless using localhost (use HTTPS - 
@@ -94,14 +94,16 @@ If you did everything correctly, the URL should take you to an Authorization pag
 ```js
 const Ruqqus = require("ruqqus-js");
 
-const client = new Ruqqus.Client({
-  id: "CLIENT_ID",
-  token: "CLIENT_SECRET",
-  code: "AUTHCODE"
-});
+const client = new Ruqqus.Client();
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.username}!`);
+});
+
+client.login({
+  id: "CLIENT_ID",
+  token: "CLIENT_SECRET",
+  code: "AUTHCODE"
 });
 ```
 

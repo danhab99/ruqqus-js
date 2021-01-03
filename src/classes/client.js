@@ -1,8 +1,13 @@
 const { EventEmitter } = require("events");
 
-const { OAuthWarning, OAuthError } = require("./error.js");
-const SubmissionCache = require("./cache.js");
-const config = require("../util/config.js");
+const { GuildManager } = require("./guild.js");
+const { PostManager } = require("./post.js");
+const { CommentManager } = require("./comment.js");
+const { User, BannedUser, DeletedUser, UserManager } = require("./user.js");
+
+const APIRequest = require("../util/api-request.js");
+const Config = require("../util/config.js");
+const { ScopeError } = require("./error.js");
 
 const Feed = require('./feed');
 const Post = require("./post.js");
@@ -11,12 +16,9 @@ class Client extends EventEmitter {
   /**
    * Creates a new ruqqus-js Client instance.
    * 
-   * @param {Object} options The Application parameters, including the authorization code.
-   * @param {String} options.id The Application ID. 
-   * @param {String} options.token The Application secret.
-   * @param {String} options.code The one-time use authorization code.
+   * @param {Object} [options] The client options.
+   * @param {String} [options.path] Path to a config file.
    * @param {String} [options.agent] Custom `user_agent`.
-   * @param {String} [options.refresh] The refresh token. Overrides authorization code.
    * @constructor
    */
 
@@ -59,9 +61,19 @@ class Client extends EventEmitter {
 
     this.startTime = 0;
     this.online = false,
+    this.user = undefined;
 
-    this._refreshToken();
-    this._checkEvents();
+    this.scopes = {
+      identity: false,
+      create: false,
+      read: false,
+      update: false,
+      delete: false,
+      vote: false,
+      guildmaster: false
+    };
+
+    this._timeouts = new Set();
   }
 
   /**
@@ -246,7 +258,8 @@ class Client extends EventEmitter {
   }
 
   _checkEvents() {
-    setTimeout(() => { this._checkEvents() }, 10000);
+    const timer = setTimeout(() => { this._checkEvents() }, 10000);
+    this._timeouts.add(timer);
     
     if (this.eventNames().includes("post")) {
       if (!this.scopes.read) return;
@@ -258,35 +271,28 @@ class Client extends EventEmitter {
           resp.data.forEach(async p => {
             if (this.posts.cache.get(p.id)) return;
 
-            let post = new (require("./post.js"))(p);
-            this.posts.cache.push(post);
-            
-            if (this.posts.cache._count != 0) {
-              this.emit("post", post);
-            }
-          });
+            this.posts.cache.add(posts);
+          } catch (e) {
+            // WIP - Proper error handling
+          }
 
           this.posts.cache._count++;
         });
     }
 
-    if (this.eventNames().includes("comment")) {
-      if (!this.scopes.read) return;
-      
-      this.APIRequest({ type: "GET", path: "front/comments", options: { sort: "new" } })
-        .then((resp) => {
-          if (resp.error) return;
+    if (this.eventNames().includes("comment") && this.scopes.read) {      
+      this.guilds.all.fetchComments({ cache: false })
+        .then(comments => {
+          try {
+            comments.forEach(async comment => {
+              if (this.comments.cache.get(comment.id)) return;
+              if (this.comments.cache._count != 0) this.emit("comment", comment);
+            });
 
-          resp.data.forEach(async c => {
-            if (this.comments.cache.get(c.id)) return;
-
-            let comment = new (require("./comment.js"))(c);
-            this.comments.cache.push(comment);
-            
-            if (this.comments.cache._count != 0) {
-              this.emit("comment", comment);
-            }
-          });
+            this.comments.cache.add(comments);
+          } catch (e) {
+            // WIP - Proper error handling
+          }
 
           this.comments.cache._count++;
         });

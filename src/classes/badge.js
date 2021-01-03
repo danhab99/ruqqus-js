@@ -11,6 +11,7 @@ class Badge {
       name: resp.name,
       description: resp.text,
       url: resp.url,
+      icon_url: resp.icon_url,
       created_at: resp.created_utc
     }
   }

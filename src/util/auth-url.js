@@ -1,4 +1,5 @@
-const { OAuthError } = require("./classes/error.js");
+const readline = require("readline");
+const { OAuthError, ScopeError } = require("../classes/error.js");
 
 /**
  * Generates a URL for obtaining an authorization code.
@@ -18,28 +19,17 @@ function getAuthURL(options) {
 
   if (Array.isArray(options.scopes)) scopes = options.scopes;
   else if (typeof options.scopes == "string") {
-    if (!options.scopes || options.scopes == " ") {
-      new OAuthError({
-        message: "Invalid Scope Parameter",
-        code: 401
-      }); return;
-    }
+    if (!options.scopes || options.scopes == " ") throw new ScopeError("Invalid scope list");
 
-    if (options.scopes == "all") scopes = scopeList;
-    else scopes = options.scopes.split(",");
-  } else {
-    new OAuthError({
-      message: "Invalid Scope Parameter",
-      code: 401
-    }); return;
-  }
+    try {
+      if (options.scopes == "all") scopes = scopeList;
+      else scopes = options.scopes.split(",");
+    } catch (e) { 
+      throw new ScopeError("Scope list must be split by commas"); 
+    }
+  } else throw new ScopeError("Scope list must be an array or a string");
   
-  if (!options.id || options.id == " ") {
-    new OAuthError({
-      message: "Invalid ID Parameter",
-      code: 401
-    }); return;
-  }
+  if (!options.id || options.id == " ") throw new OAuthError("Invalid application ID");
   
   scopes = scopes.filter(s => scopeList.includes(s.toLowerCase())).map(s => {
     return s.toLowerCase();

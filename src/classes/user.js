@@ -1,25 +1,65 @@
-const { OAuthError } = require("./error.js");
+const { ScopeError } = require("./error.js");
 
-const Badge = require('./badge')
+class UserBase {
+  constructor(client) {
+    Object.defineProperty(this, "client", { value: client });
+  }
 
-class User {
+  /**
+   * Fetches an array of post objects from the user.
+   * 
+   * @param {Object} [options] The post sorting parameters.
+   * @param {Number} [options.page=1] The page index to fetch posts from.
+   * @param {Boolean} [cache=true] Whether or not the posts should be cached.
+   * @returns {Array} The post objects.
+   */
+
+  async fetchPosts(options) {
+    if (!this.client.scopes.read) throw new ScopeError(`Missing "read" scope`);
+    
+    let resp = await this.client.APIRequest({ type: "GET", path: `user/${this.username}/listing`, options: { 
+      page: options && options.page || 1 
+    } }); if (resp.error) return;
+
+    const { Post } = require("./post.js");
+    let posts = resp.data.map(post => new Post(post, this.client));
+
+    if (!options || options.cache !== false) this.client.posts.cache.add(posts);
+    return posts;
+  }
+
+  /**
+   * Fetches an array of comment objects from the user.
+   * 
+   * @param {Object} [options] The comment sorting parameters.
+   * @param {Number} [options.page=1] The page index to fetch comments from.
+   * @param {Boolean} [cache=true] Whether or not the posts should be cached.
+   * @returns {Array} The comment objects.
+   */
+
+  async fetchComments(options) {
+    if (!this.client.scopes.read) throw new ScopeError(`Missing "read" scope`);
+
+    let resp = await this.client.APIRequest({ type: "GET", path: `user/${this.username}/comments`, options: { 
+      page: options && options.page || 1 
+    } }); if (resp.error) return;
+
+    const { Comment } = require("./comment.js");
+    let comments = resp.data.map(comment => new Comment(comment, this.client));
+
+    if (!options || options.cache !== false) this.client.comments.cache.add(comments);
+    return comments;
+  }
+}
+
+class User extends UserBase {
   constructor(data, client) {
-    this.client = client
-    Object.assign(this, this.formatData(data));
+    super(client);
+    Object.assign(this, User.formatData(data));
   }
 
   formatData(resp) {
     if (!resp.id) return undefined;
-
-    if (resp.is_banned) {
-      return {
-        username: resp.username,
-        id: resp.id,
-        link: resp.permalink,
-        full_link: `https://ruqqus.com${resp.permalink}`,
-        ban_reason: resp.ban_reason,
-      }
-    }
     
     return {
       username: resp.username,
@@ -47,7 +87,9 @@ class User {
       banner_url: resp.banner_url.startsWith("/assets") ? `https://ruqqus.com${resp.banner_url}` : resp.banner_url,
       created_at: resp.created_utc,
       flags: {
-        banned: resp.is_banned
+        banned: resp.is_banned,
+        private: resp.is_private,
+        premium: resp.is_premium
       },
       badges: 
         resp.badges.map(badge => {
@@ -55,68 +97,127 @@ class User {
         }),
     }
   }
+}
 
-  /**
-   * Fetches an array of post objects from the user.
-   * 
-   * @param {Object} [options] The post sorting parameters.
-   * @param {Number} [options.page=1] The page index to fetch posts from.
-   * @param {Number} [options.limit=24] The amount of post objects to return.
-   * @returns {Array} The post objects.
-   */
-
-  async fetchPosts(options) {
-    const Post = require("./post.js");
-
-    if (!this.client.scopes.read) {
-      throw new OAuthError({
-        message: 'Missing "Read" Scope',
-        code: 401
-      }); 
-    }
-
-    let posts = [];
-    
-    let resp = await this.client.APIRequest({ type: "GET", path: `user/${this.username}/listing`, options: { page: options && options.page ? options.page : 1 } });
-    if (options && options.limit) resp.data.splice(options.limit, resp.data.length - options.limit);
-
-    for await (let post of resp.data) {
-      posts.push(new Post(post));
-    }
-
-    return posts;
+class UserCore extends UserBase {
+  constructor(data, client) {
+    super(client);
+    Object.assign(this, UserCore.formatData(data));
   }
 
-  /**
-   * Fetches an array of comment objects from the user.
-   * 
-   * @param {Object} [options] The comment sorting parameters.
-   * @param {Number} [options.page=1] The page index to fetch comments from.
-   * @param {Number} [options.limit=24] The amount of comment objects to return.
-   * @returns {Array} The comment objects.
-   */
+  static formatData(resp) {
+    if (!resp.id) return undefined;
 
-  async fetchComments(limit, page) {
-    const Comment = require("./comment.js");
-
-    if (!this.client.scopes.read) {
-      throw new OAuthError({
-        message: 'Missing "Read" Scope',
-        code: 401
-      }); 
+    return {
+      username: resp.username,
+      title: resp.title ? {
+        name: resp.title.text.startsWith(",") ? resp.title.text.split(", ")[1] : resp.title.text,
+        id: resp.title.id,
+        kind: resp.title.kind,
+        color: resp.title.color
+      } : null,
+      bio: {
+        text: resp.bio,
+        html: resp.bio_html
+      },
+      id: resp.id,
+      full_id: `t1_${resp.id}`,
+      link: resp.permalink,
+      full_link: `https://ruqqus.com${resp.permalink}`,
+      avatar_url: resp.profile_url.startsWith("/assets") ? `https://ruqqus.com${resp.profile_url}` : resp.profile_url,
+      banner_url: resp.banner_url.startsWith("/assets") ? `https://ruqqus.com${resp.banner_url}` : resp.banner_url,
+      created_at: resp.created_utc,
+      flags: {
+        banned: resp.is_banned,
+        private: resp.is_private,
+        premium: resp.is_premium
+      }
     }
-
-    let comments = [];
-
-    let resp = await this.client.APIRequest({ type: "GET", path: `user/${this.username}/comments`, options: { page: options && options.page ? options.page : 1 } });
-    if (options && options.limit) resp.data.splice(options.limit, resp.data.length - options.limit);
-    
-    for await (let comment of resp.data) {
-      comments.push(new Comment(comment));
-    }
-
-    return comments;
   }
 }
 
-module.exports = User;
+class BannedUser {
+  constructor(data) {
+    Object.assign(this, DeletedUser.formatData(data));
+  }
+
+  static formatData(resp) {
+    if (!resp.id) return undefined;
+    
+    return {
+      username: resp.username,
+      id: resp.id,
+      full_id: `t1_${resp.id}`,
+      link: resp.permalink,
+      full_link: `https://ruqqus.com${resp.permalink}`,
+      ban_reason: resp.ban_reason,
+      flags: {
+        banned: true
+      }
+    }
+  }
+}
+
+class DeletedUser {
+  constructor(data) {
+    Object.assign(this, DeletedUser.formatData(data));
+  }
+
+  static formatData(resp) {
+    if (!resp.id) return undefined;
+
+    return {
+      username: resp.username,
+      id: resp.id,
+      full_id: `t1_${resp.id}`,
+      link: resp.permalink,
+      full_link: `https://ruqqus.com${resp.permalink}`,
+      flags: {
+        deleted: true
+      }
+    }
+  }
+}
+
+class UserManager {
+  constructor(client) {
+    Object.defineProperty(this, "client", { value: client });
+  }
+
+  /**
+   * Fetches a user with the specified username.
+   * 
+   * @param {String} username The user's name.
+   * @returns {User} The user object.
+   */
+
+  async fetch(username) {
+    if (!this.client.scopes.read) throw new ScopeError(`Missing "read" scope`);
+
+    let resp = await this.client.APIRequest({ type: "GET", path: `user/${username}` });
+
+    if (resp.is_banned) {
+      return new BannedUser(resp);
+    } else if (resp.is_deleted) {
+      return new DeletedUser(resp);
+    } else {
+      return new User(resp, this.client);
+    }
+  }
+
+  /**
+   * Fetches whether or not a user with the specified username is available.
+   * 
+   * @param {String} username The user's name.
+   * @returns {Boolean}
+   */
+  
+  async isAvailable(username) {
+    if (!username) return undefined;
+    let resp = await this.client.APIRequest({ type: "GET", path: `is_available/${username}` });
+
+    return Object.values(resp)[0];
+  }
+}
+
+module.exports = { UserBase, User, UserCore, BannedUser, DeletedUser, UserManager }

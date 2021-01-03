@@ -1,8 +1,9 @@
 {
   "name": "ruqqus-js",
-  "version": "3.4.2",
+  "version": "4.0.1",
   "description": "A Node.js wrapper of the Ruqqus API; designed for Ruqqus Applications.",
   "main": "src/index.js",
+  "types": "src/typings/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
